@@ -3,12 +3,39 @@
  */
 package mochila.genetica;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import mochila.genetica.genetic.population.Population;
+import mochila.genetica.genetic.population.PopulationInstance;
+import mochila.genetica.genetic.chromosome.ChromosomeContextInstance;
+import mochila.genetica.genetic.chromosome.ChromosomeContextInstanceImpl;
 
+import java.util.Scanner;
+
+public class App {
+   private static Scanner sc = new Scanner(System.in);
+
+   private static ChromosomeContextInstance getChromosomeValuesFromInputUser(){
+       int tam = sc.nextInt();
+       int capacity = sc.nextInt();
+
+       int values[] = new int[tam];
+       int weight[] = new int[tam];
+
+       for(int i = 0; i<tam; i++){
+           values[i] = sc.nextInt();
+           weight[i] = sc.nextInt();
+       }
+
+       ChromosomeContextInstance chromosomeValues = ChromosomeContextInstanceImpl.fromOfValueAndWeigthAndCapacity(values, weight, capacity);
+
+       return chromosomeValues;
+   }
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        ChromosomeContextInstance chromosomeValues = getChromosomeValuesFromInputUser();
+        PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 10);
+
+        populationInstance.show();
+        System.out.println("applicando fitness");
+        populationInstance.sortIndividualsByFitnessFunction();
+        populationInstance.show();
     }
 }
