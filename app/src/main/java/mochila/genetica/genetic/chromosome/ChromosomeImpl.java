@@ -48,6 +48,11 @@ public class ChromosomeImpl implements Chromosome {
         return genes[position];
     }
 
+    @Override
+    public int size() {
+        return genes.length;
+    }
+
     private void validPositionInArrayGenes(int position) {
         if (position >= numberOfGenes) {
             throw new IndexOutOfBoundsException("Number of genes is less of the that " + position);

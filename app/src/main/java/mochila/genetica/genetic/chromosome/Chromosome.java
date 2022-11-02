@@ -9,4 +9,6 @@ public interface Chromosome {
 
     Chromosome clone();
     boolean getActiveGene(int position);
+
+    int size();
 }

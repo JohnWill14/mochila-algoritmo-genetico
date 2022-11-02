@@ -31,11 +31,27 @@ public class App {
    }
     public static void main(String[] args) {
         ChromosomeContextInstance chromosomeValues = getChromosomeValuesFromInputUser();
-        PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 10);
+        PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 100);
 
-        populationInstance.show();
-        System.out.println("applicando fitness");
-        populationInstance.sortIndividualsByFitnessFunction();
+        int numeroGeracao = 0;
+
+        while(numeroGeracao<50){
+            numeroGeracao++;
+
+            populationInstance.sortIndividualsByFitnessFunction();
+            if(numeroGeracao>1){
+                populationInstance.mataTudoTaOk();
+            }
+            System.out.println("CROSSOVER("+numeroGeracao+")");
+            System.out.println("size: pre crossover:"+populationInstance.size());
+            populationInstance.crossover();
+            System.out.println("size pos crossover: "+populationInstance.size());
+            populationInstance.sortIndividualsByFitnessFunction();
+        }
+
+
+
+
         populationInstance.show();
     }
 }
