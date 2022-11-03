@@ -1,5 +1,7 @@
 package mochila.genetica.genetic.population;
 
+import mochila.genetica.genetic.chromosome.ChromosomeValue;
+
 public interface PopulationInstance {
     void show();
     void sortIndividualsByFitnessFunction();
@@ -8,4 +10,8 @@ public interface PopulationInstance {
     int size();
 
     void mataTudoTaOk();
+
+    ChromosomeValue bestIndividual();
+
+    double averagePopulatonByFitness();
 }

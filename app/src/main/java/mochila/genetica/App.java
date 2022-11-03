@@ -3,16 +3,22 @@
  */
 package mochila.genetica;
 
-import mochila.genetica.genetic.population.Population;
-import mochila.genetica.genetic.population.PopulationInstance;
+import mochila.genetica.exporter.DataGeneration;
+import mochila.genetica.exporter.ExporterHandler;
+import mochila.genetica.exporter.ExporterPopulationCsvHandler;
 import mochila.genetica.genetic.chromosome.ChromosomeContextInstance;
 import mochila.genetica.genetic.chromosome.ChromosomeContextInstanceImpl;
+import mochila.genetica.genetic.chromosome.ChromosomeValue;
+import mochila.genetica.genetic.population.Population;
+import mochila.genetica.genetic.population.PopulationInstance;
 
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class App {
    private static Scanner sc = new Scanner(System.in);
-
    private static ChromosomeContextInstance getChromosomeValuesFromInputUser(){
        int tam = sc.nextInt();
        int capacity = sc.nextInt();
@@ -31,27 +37,52 @@ public class App {
    }
     public static void main(String[] args) {
         ChromosomeContextInstance chromosomeValues = getChromosomeValuesFromInputUser();
-        PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 100);
+        PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 20);
 
         int numeroGeracao = 0;
+
+        List< DataGeneration> dataGenerationsStatistic = new ArrayList<>();
 
         while(numeroGeracao<50){
             numeroGeracao++;
 
             populationInstance.sortIndividualsByFitnessFunction();
-            if(numeroGeracao>1){
-                populationInstance.mataTudoTaOk();
-            }
-            System.out.println("CROSSOVER("+numeroGeracao+")");
-            System.out.println("size: pre crossover:"+populationInstance.size());
-            populationInstance.crossover();
-            System.out.println("size pos crossover: "+populationInstance.size());
-            populationInstance.sortIndividualsByFitnessFunction();
+            populationInstance.mataTudoTaOk();
+
+           populationInstance.crossover();
+           populationInstance.sortIndividualsByFitnessFunction();
+
+
+
+            DataGeneration dataGeneration = getStatisticFromPopulation(numeroGeracao, populationInstance);
+            dataGenerationsStatistic.add(dataGeneration);
         }
-
-
-
-
         populationInstance.show();
+
+        System.out.println("Melhor individuo encontrado após "+(numeroGeracao-1)+" gerações:");
+        System.out.println(populationInstance.bestIndividual());
+
+        exportInfo(dataGenerationsStatistic);
+
+    }
+
+    private static void exportInfo( List< DataGeneration> dataGenerationsStatistic){
+        ExporterHandler exporterHandler = new ExporterHandler();
+        ExporterPopulationCsvHandler exportPopulation = new ExporterPopulationCsvHandler();
+        List<String[]> datas = exportPopulation.getDatasForFileCSVFromPopulation(dataGenerationsStatistic);
+
+        exporterHandler.writeList("file.csv", exportPopulation.getHeader(), datas);
+    }
+
+    private static DataGeneration getStatisticFromPopulation(int numeroGeracao, PopulationInstance populationInstance){
+        ChromosomeValue bestChromosomeValue = populationInstance.bestIndividual();
+       return DataGeneration.builder()
+               .numberGeneration(numeroGeracao)
+               .size(populationInstance.size())
+               .average(populationInstance.averagePopulatonByFitness())
+               .bestFitness(bestChromosomeValue.getValue())
+               .bestValue(bestChromosomeValue.getValue())
+               .bestWeight(bestChromosomeValue.getWeight())
+               .build();
     }
 }

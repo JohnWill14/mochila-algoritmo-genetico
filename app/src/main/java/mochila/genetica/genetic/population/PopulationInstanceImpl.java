@@ -120,13 +120,25 @@ public class PopulationInstanceImpl implements PopulationInstance {
 
     @Override
     public void mataTudoTaOk() {
-        int size = this.size();
-        int taxaMortalidade = (int)(size*0.06d);
+       int size = this.size();
 
-        for (int i=0;i<=taxaMortalidade&&population.size()>0;i++){
-            population.remove(population.size()-1);
-        }
+       while(size > 100){
+           population.remove(population.size() - 1);
+           size -= 1;
+       }
+    }
 
+    @Override
+    public ChromosomeValue bestIndividual() {
+        return this.population.get(0);
+    }
+
+    @Override
+    public double averagePopulatonByFitness() {
+        return this.population.stream()
+                .mapToInt(ChromosomeValue::getValue)
+                .average()
+                .getAsDouble();
     }
 
     private ChromosomeValue roulette(Set<ChromosomeValue> conjunto){
