@@ -9,7 +9,7 @@ public interface PopulationInstance {
 
     int size();
 
-    void mataTudoTaOk();
+    void applyMortalityRate();
 
     ChromosomeValue bestIndividual();
 

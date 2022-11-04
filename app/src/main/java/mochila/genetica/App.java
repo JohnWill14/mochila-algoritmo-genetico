@@ -18,55 +18,84 @@ import java.util.List;
 import java.util.Scanner;
 
 public class App {
-   private static Scanner sc = new Scanner(System.in);
-   private static ChromosomeContextInstance getChromosomeValuesFromInputUser(){
-       int tam = sc.nextInt();
-       int capacity = sc.nextInt();
+    private static Scanner sc = new Scanner(System.in);
 
-       int values[] = new int[tam];
-       int weight[] = new int[tam];
+    private static ChromosomeContextInstance getChromosomeValuesFromInputUser() {
+        int tam = sc.nextInt();
+        int capacity = sc.nextInt();
 
-       for(int i = 0; i<tam; i++){
-           values[i] = sc.nextInt();
-           weight[i] = sc.nextInt();
-       }
+        int values[] = new int[tam];
+        int weight[] = new int[tam];
 
-       ChromosomeContextInstance chromosomeValues = ChromosomeContextInstanceImpl.fromOfValueAndWeigthAndCapacity(values, weight, capacity);
+        for (int i = 0; i < tam; i++) {
+            values[i] = sc.nextInt();
+            weight[i] = sc.nextInt();
+        }
 
-       return chromosomeValues;
-   }
+        ChromosomeContextInstance chromosomeValues = ChromosomeContextInstanceImpl.fromOfValueAndWeigthAndCapacity(values, weight, capacity);
+
+        return chromosomeValues;
+    }
+
     public static void main(String[] args) {
         ChromosomeContextInstance chromosomeValues = getChromosomeValuesFromInputUser();
         PopulationInstance populationInstance = Population.initializePopulationFromChromosomeValuesAndNumberIndividuals(chromosomeValues, 20);
 
         int numeroGeracao = 0;
 
-        List< DataGeneration> dataGenerationsStatistic = new ArrayList<>();
+        List<DataGeneration> dataGenerationsStatistic = new ArrayList<>();
+        double averageOld = -1;
+        int contParada = 0;
 
-        while(numeroGeracao<50){
+        while (true) {
             numeroGeracao++;
 
             populationInstance.sortIndividualsByFitnessFunction();
-            populationInstance.mataTudoTaOk();
+            populationInstance.applyMortalityRate();
 
-           populationInstance.crossover();
-           populationInstance.sortIndividualsByFitnessFunction();
-
-
+            populationInstance.crossover();
+            populationInstance.sortIndividualsByFitnessFunction();
 
             DataGeneration dataGeneration = getStatisticFromPopulation(numeroGeracao, populationInstance);
             dataGenerationsStatistic.add(dataGeneration);
+
+            double averageNew = dataGeneration.getAverage();
+
+            if(averageOld>0&&calculateVariation(averageOld, averageNew)>=99){
+                contParada++;
+            }else{
+                contParada=0;
+            }
+
+            if(contParada>=50){
+                break;
+            }
+
+            averageOld = dataGeneration.getAverage();
         }
         populationInstance.show();
 
-        System.out.println("Melhor individuo encontrado após "+(numeroGeracao-1)+" gerações:");
+        System.out.println("Melhor individuo encontrado após " + (numeroGeracao - 1) + " gerações:");
         System.out.println(populationInstance.bestIndividual());
 
         exportInfo(dataGenerationsStatistic);
 
     }
 
-    private static void exportInfo( List< DataGeneration> dataGenerationsStatistic){
+    private static int calculateVariation(double one, double two){
+        int compare = Double.compare(one, two);
+        double ans = 1;
+
+        if(compare<0){
+            ans = one/two;
+        }else if(compare>0){
+            ans = two/one;
+        }
+
+        return (int) (ans*100);
+    }
+
+    private static void exportInfo(List<DataGeneration> dataGenerationsStatistic) {
         ExporterHandler exporterHandler = new ExporterHandler();
         ExporterPopulationCsvHandler exportPopulation = new ExporterPopulationCsvHandler();
         List<String[]> datas = exportPopulation.getDatasForFileCSVFromPopulation(dataGenerationsStatistic);
@@ -74,15 +103,15 @@ public class App {
         exporterHandler.writeList("file.csv", exportPopulation.getHeader(), datas);
     }
 
-    private static DataGeneration getStatisticFromPopulation(int numeroGeracao, PopulationInstance populationInstance){
+    private static DataGeneration getStatisticFromPopulation(int numeroGeracao, PopulationInstance populationInstance) {
         ChromosomeValue bestChromosomeValue = populationInstance.bestIndividual();
-       return DataGeneration.builder()
-               .numberGeneration(numeroGeracao)
-               .size(populationInstance.size())
-               .average(populationInstance.averagePopulatonByFitness())
-               .bestFitness(bestChromosomeValue.getValue())
-               .bestValue(bestChromosomeValue.getValue())
-               .bestWeight(bestChromosomeValue.getWeight())
-               .build();
+        return DataGeneration.builder()
+                .numberGeneration(numeroGeracao)
+                .size(populationInstance.size())
+                .average(populationInstance.averagePopulatonByFitness())
+                .bestFitness(bestChromosomeValue.getValue())
+                .bestValue(bestChromosomeValue.getValue())
+                .bestWeight(bestChromosomeValue.getWeight())
+                .build();
     }
 }
