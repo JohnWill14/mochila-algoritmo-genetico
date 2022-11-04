@@ -49,6 +49,8 @@ public class PopulationInstanceImpl implements PopulationInstance {
         }
 
         int positionInArray = 0;
+        int quantityMutation = (int) (quantityCrossover*0.3+1);
+
         while (pairsCrossover.size()-positionInArray>1){
             Chromosome father = pairsCrossover.get(positionInArray);
             positionInArray++;
@@ -57,8 +59,8 @@ public class PopulationInstanceImpl implements PopulationInstance {
 
             int locus = ThreadLocalRandom.current().nextInt(0, father.size());
 
-            Chromosome f1 = ChromosomeImpl.getInstanceFromNumberGenes(father.size());
-            Chromosome f2 = ChromosomeImpl.getInstanceFromNumberGenes(father.size());
+            Chromosome f1 = mother.clone();
+            Chromosome f2 = father.clone();
 
             for(int i=0; i<locus;i++){
                 if(father.getActiveGene(i)){
@@ -68,30 +70,24 @@ public class PopulationInstanceImpl implements PopulationInstance {
                 }
             }
 
-
-            for(int i=locus; i<father.size(); i++){
-                if(mother.getActiveGene(i)){
-                    f1.activeGeneFromPosition(i);
-                }else{
-                    f1.desabilityGeneFromPosition(i);
-                }
-            }
-
-            for(int i=0; i<locus;i++){
-                if(father.getActiveGene(i)){
-                    f2.activeGeneFromPosition(i);
-                }else{
-                    f2.desabilityGeneFromPosition(i);
-                }
-            }
-
-
             for(int i=locus; i<father.size(); i++){
                 if(mother.getActiveGene(i)){
                     f2.activeGeneFromPosition(i);
                 }else{
                     f2.desabilityGeneFromPosition(i);
                 }
+            }
+
+            if(quantityMutation>0){
+                if(ThreadLocalRandom.current().nextBoolean()){
+                    int position = ThreadLocalRandom.current().nextInt(0, f1.size());
+                    f1.toggleGeneFromPosition(position);
+                }else{
+                    int position = ThreadLocalRandom.current().nextInt(0, f2.size());
+                    f2.toggleGeneFromPosition(position);
+                }
+
+                quantityMutation--;
             }
 
             int wightF1 = ChromosomeUtil.getWeightIndividualReferencesForChromosomeValues(f1, chromosomeValues);
@@ -105,7 +101,7 @@ public class PopulationInstanceImpl implements PopulationInstance {
             int wightF2 = ChromosomeUtil.getWeightIndividualReferencesForChromosomeValues(f2, chromosomeValues);
 
             if(wightF2<= chromosomeValues.getCapacity()){
-                int value = ChromosomeUtil.getValueIndividualReferencesForChromosomeValues(f1, chromosomeValues);
+                int value = ChromosomeUtil.getValueIndividualReferencesForChromosomeValues(f2, chromosomeValues);
                 this.population.add(new ChromosomeValueImpl(f2, value, wightF2));
             }
 
@@ -119,14 +115,27 @@ public class PopulationInstanceImpl implements PopulationInstance {
     }
 
     @Override
-    public void mataTudoTaOk() {
-        int size = this.size();
-        int taxaMortalidade = (int)(size*0.06d);
+    public void applyMortalityRate() {
+       int size = this.size();
 
-        for (int i=0;i<=taxaMortalidade&&population.size()>0;i++){
-            population.remove(population.size()-1);
-        }
+       while(size > 100){
+           population.remove(population.size() - 1);
+           size -= 1;
+       }
 
+    }
+
+    @Override
+    public ChromosomeValue bestIndividual() {
+        return this.population.get(0);
+    }
+
+    @Override
+    public double averagePopulatonByFitness() {
+        return this.population.stream()
+                .mapToInt(ChromosomeValue::getValue)
+                .average()
+                .getAsDouble();
     }
 
     private ChromosomeValue roulette(Set<ChromosomeValue> conjunto){
