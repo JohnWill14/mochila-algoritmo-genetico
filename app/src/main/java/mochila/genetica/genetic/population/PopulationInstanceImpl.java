@@ -34,11 +34,20 @@ public class PopulationInstanceImpl implements PopulationInstance {
     }
 
     public void crossover(){
-        int quantityCrossover = (int) (this.population.size()*0.2d);
+        int quantityCrossover = (int) (this.population.size()*0.5d);
         quantityCrossover = quantityCrossover%2 == 0 ? quantityCrossover:quantityCrossover+1;
 
         Set<ChromosomeValue> teste = new HashSet<>();
-        teste.addAll(this.population);
+
+        int fifiteen = (int)(this.population.size()*0.15);
+        for(int i =0; i<fifiteen;i++){
+            teste.add(this.population.get(i));
+        }
+
+
+        for(int i =this.population.size()-fifiteen; i<this.population.size() ;i++){
+            teste.add(this.population.get(i));
+        }
 
         List<Chromosome> pairsCrossover = new ArrayList<>();
 
